@@ -1,0 +1,5 @@
+weaken(args[0]);
+/*if (fileExists("Formulas.exe")) { 
+	formulas.()
+}
+*/
