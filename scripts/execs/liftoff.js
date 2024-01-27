@@ -1,11 +1,13 @@
 /** @param {NS} ns */
 import * as util from "/lib/util.js";
+import * as xpl from "/lib/exploit.js";
 
 export async function main(ns) {
 	let hosts = util.scanHosts(ns);
-	hosts.forEach(function (host) {
-		util.gainAccess(ns, host);
-	});
+	for (let host of hosts) {
+		xpl.exploitHost(ns, host);
+		await xpl.exfiltrateData(ns, host);
+	}
 
 	let i = -1;
 	while (true) {
@@ -18,7 +20,7 @@ export async function main(ns) {
 		if (!ns.hasRootAccess(host) || freeRam < ns.getScriptRam("/scripts/hacks/hack.js"))
 			continue;
 
-		let maxThreads = freeRam / ns.getScriptRam("/scripts/hacks/hack.js");
+		let maxThreads = Math.max(1, parseInt(freeRam / ns.getScriptRam("/scripts/hacks/hack.js")));
 		let securityThreshold = ns.getServerMinSecurityLevel(host) * 1.1;
 		let moneyThreshold = ns.getServerMaxMoney(host) * 0.9;
 

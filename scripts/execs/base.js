@@ -1,21 +1,22 @@
 /** @param {NS} ns */
 import * as util from "/lib/util.js";
+import * as xpl from "/lib/exploit.js";
 
 export async function main(ns) {
 	let owned_hosts = util.owned(ns);
 	let targets = util.scanHosts(ns).filter(
 		function (host) {
 			return !owned_hosts.includes(host) 
-					&& ns.hasRootAccess(host)
-					&& ns.getServerMaxMoney(host) > 0;
-		}
-	);
+				&& ns.getServerMaxMoney(host) > 0
+				&& ns.getServerNumPortsRequired(host) <= xpl.exploitsAvailable(ns).length
+	});
 	
 	targets.forEach(function (host) {
-		util.gainAccess(ns, host);
+		xpl.exploitHost(ns, host);
 	});
 
 	let i = -1;
+	let j = 0;
 	while (true) {
 		await ns.sleep(100);
 		i++;
@@ -30,9 +31,9 @@ export async function main(ns) {
 			else {
 				freeRam = ns.getServerMaxRam(host) - ns.getServerUsedRam(host) - 1;
 			}
-			let maxThreads = ns.getServerMaxRam(host) 
+			let maxThreads = Math.max(parseInt(ns.getServerMaxRam(host) 
 						   / ns.getScriptRam("/scripts/hacks/remote_hack.js") 
-						   / targets.length;
+						   / targets.length), 1);
 			if (freeRam < (maxThreads * ns.getScriptRam("scripts/hacks/remote_hack.js"))) {
 				return;
 			}
